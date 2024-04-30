@@ -46,7 +46,7 @@ CREATE TYPE tset_ref_operations AS TABLE OF REF toperation;
 CREATE TYPE tset_ref_prets AS TABLE OF REF tpret;
 /
 
----------------------
+---------creation et definition des types------------
 CREATE OR REPLACE TYPE tsuccursale AS OBJECT
 (
     numSucc NUMBER(3),
@@ -55,7 +55,7 @@ CREATE OR REPLACE TYPE tsuccursale AS OBJECT
     region VARCHAR2(10),
     agences tset_ref_agences
 );
-/
+
 CREATE OR REPLACE TYPE tagence AS OBJECT
 (
     numAgence NUMBER(3),
@@ -65,7 +65,7 @@ CREATE OR REPLACE TYPE tagence AS OBJECT
     succursale REF tsuccursale,
     comptes tset_ref_comptes
 );
-/
+
 CREATE OR REPLACE TYPE tcompte AS OBJECT
 (
     numCompte NUMBER(10),
@@ -78,7 +78,7 @@ CREATE OR REPLACE TYPE tcompte AS OBJECT
     client REF tclient,
     agence REF tagence
 );
-/
+
 CREATE OR REPLACE TYPE tclient AS OBJECT
 (
     numClient NUMBER(5),
@@ -89,7 +89,7 @@ CREATE OR REPLACE TYPE tclient AS OBJECT
     email VARCHAR2(50),
     comptes tset_ref_comptes
 );
-/
+
 
 
 CREATE OR REPLACE TYPE toperation AS OBJECT(
@@ -100,7 +100,7 @@ CREATE OR REPLACE TYPE toperation AS OBJECT(
     observation VARCHAR2(10),
     compte REF tcompte
 );
-/
+
 CREATE OR REPLACE TYPE tpret AS OBJECT(
     numPret NUMBER,
     montantPret FLOAT,
@@ -138,7 +138,16 @@ CREATE OR REPLACE TYPE BODY tagence AS
     END;
 /
 
+
+CREATE OR REPLACE TYPE agence_succ AS OBJECT(
+    nom_agence VARCHAR2(50),
+    nom_succursale VARCHAR2(50)
+);
+/
+CREATE TYPE liste_agence_succ AS TABLE OF agence_succ;
+/
 ALTER TYPE tsuccursale ADD MEMBER FUNCTION nbr_agences_principales RETURN NUMBER CASCADE;
+ALTER TYPE tsuccursale ADD MEMBER FUNCTION show_agences_secondaires RETURN liste_agence_succ CASCADE;
 
 CREATE OR REPLACE TYPE  BODY tsuccursale AS
     MEMBER FUNCTION nbr_agences_principales RETURN NUMBER IS
@@ -173,13 +182,7 @@ END show_agences_secondaires;
 
 
 
-CREATE OR REPLACE TYPE agence_succ AS OBJECT(
-    nom_agence VARCHAR2(50),
-    nom_succursale VARCHAR2(50)
-);
-/
-CREATE TYPE liste_agence_succ AS TABLE OF agence_succ;
-/
+
 
 -- 7
 
@@ -189,34 +192,33 @@ CREATE TABLE Succursale OF tsuccursale(
     )
 )
 nested table agences STORE AS agence_succursale;
-/
+
 CREATE TABLE Agence OF tagence(
     CONSTRAINT pk_agence PRIMARY KEY (numAgence),
     CONSTRAINT ch_categorie CHECK (categorie IN ('Principale', 'Secondaire'))
 )
 nested table comptes STORE AS compte_agence;
-/
+
 CREATE TABLE Compte OF tcompte(
     CONSTRAINT pk_compte PRIMARY KEY (numCompte),
     CONSTRAINT ch_etat CHECK (etatCompte IN ('Actif', 'BLOQUE'))
 )
 NESTED TABLE prets STORE AS pret_compte, NESTED TABLE operations STORE AS operation_compte;
-/
+
 
 CREATE TABLE Client OF tclient(
     CONSTRAINT pk_client PRIMARY KEY (numClient),
     CONSTRAINT ch_type_client CHECK (typeClient IN ('Particulier', 'Entreprise'))
 )
 nested table comptes STORE AS compte_client;
-/
+
 CREATE TABLE operation OF toperation(
     CONSTRAINT pk_operation PRIMARY KEY (numOperation),
     CONSTRAINT ch_nature_op CHECK (natureOp IN ('Credit', 'Debit'))
 );
-/
+
 
 CREATE TABLE Pret OF tpret(
     CONSTRAINT pk_pret PRIMARY KEY (numPret),
     CONSTRAINT ch_type_pret CHECK (typePret IN ('Vehicule', 'Immobilier','ANSEJ', 'ANJEM'))
 );
-/
