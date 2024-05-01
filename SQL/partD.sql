@@ -83,6 +83,10 @@ insert into table (select s.agences from Succursale s where numSucc=6)
 (select ref(a) from Agence a where  a.succursale=(select ref(s) from Succursale s where numSucc=6));
 
 
+
+
+
+
 -- Insertion de 100 clients
 DECLARE
   v_numClient NUMBER := 10001;
@@ -92,6 +96,7 @@ DECLARE
   v_numTel VARCHAR2(10);
   v_email VARCHAR2(50);
   v_comptes tset_ref_comptes := tset_ref_comptes();
+  v_numAgence NUMBER;
 BEGIN
   FOR i IN 1..100 LOOP
     IF MOD(i, 2) = 0 THEN
@@ -109,9 +114,20 @@ BEGIN
     -- Ajout de comptes pour certains clients
     IF MOD(i, 3) = 0 THEN
       FOR j IN 1..FLOOR(DBMS_RANDOM.VALUE(1, 4)) LOOP
+        -- Sélectionner un numéro d'agence aléatoire
+        SELECT a.numAgence INTO v_numAgence
+        FROM Agence a
+        WHERE a.numAgence BETWEEN 101 AND 105
+            OR a.numAgence BETWEEN 201 AND 205
+            OR a.numAgence BETWEEN 301 AND 305
+            OR a.numAgence BETWEEN 401 AND 405
+            OR a.numAgence BETWEEN 501 AND 503
+            OR a.numAgence BETWEEN 601 AND 602
+        ORDER BY DBMS_RANDOM.VALUE;
+
         INSERT INTO Compte VALUES (
           tcompte(
-            LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000000, 9999999999)), 10, '0'),
+            LPAD(v_numAgence, 3, '0') || LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000, 9999999)), 7, '0'),
             TRUNC(DBMS_RANDOM.VALUE(TO_DATE('2010/01/01', 'YYYY/MM/DD'), TO_DATE('2023/04/30', 'YYYY/MM/DD'))),
             TRUNC(DBMS_RANDOM.VALUE(TO_DATE('2010/01/01', 'YYYY/MM/DD'), TO_DATE('2023/04/30', 'YYYY/MM/DD'))),
             CASE WHEN TRUNC(DBMS_RANDOM.VALUE(0, 2)) = 0 THEN 'Actif' ELSE 'BLOQUE' END,
@@ -119,12 +135,7 @@ BEGIN
             tset_ref_operations(),
             tset_ref_prets(),
             (SELECT REF(c) FROM Client c WHERE c.numClient = v_numClient),
-            (SELECT REF(a) FROM Agence a WHERE a.numAgence BETWEEN 101 AND 105
-                                              OR a.numAgence BETWEEN 201 AND 205
-                                              OR a.numAgence BETWEEN 301 AND 305
-                                              OR a.numAgence BETWEEN 401 AND 405
-                                              OR a.numAgence BETWEEN 501 AND 503
-                                              OR a.numAgence BETWEEN 601 AND 602)
+            (SELECT REF(a) FROM Agence a WHERE a.numAgence = v_numAgence)
           )
         );
 
@@ -138,7 +149,7 @@ BEGIN
                 TRUNC(DBMS_RANDOM.VALUE(1000, 100000)),
                 TRUNC(DBMS_RANDOM.VALUE(TO_DATE('2020/01/01', 'YYYY/MM/DD'), TO_DATE('2023/04/30', 'YYYY/MM/DD'))),
                 NULL,
-                (SELECT REF(c) FROM Compte c WHERE c.numCompte = LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000000, 9999999999)), 10, '0'))
+                (SELECT REF(c) FROM Compte c WHERE c.numCompte = LPAD(v_numAgence, 3, '0') || LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000, 9999999)), 7, '0'))
               )
             );
           END LOOP;
@@ -158,7 +169,7 @@ BEGIN
                      WHEN TRUNC(DBMS_RANDOM.VALUE(0, 5)) = 2 THEN 'ANSEJ'
                      ELSE 'ANJEM' END,
                 TRUNC(DBMS_RANDOM.VALUE(1, 10)),
-                (SELECT REF(c) FROM Compte c WHERE c.numCompte = LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000000, 9999999999)), 10, '0'))
+                (SELECT REF(c) FROM Compte c WHERE c.numCompte = LPAD(v_numAgence, 3, '0') || LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000, 9999999)), 7, '0'))
               )
             );
           END LOOP;
