@@ -87,7 +87,6 @@ insert into table (select s.agences from Succursale s where numSucc=6)
 
 
 
--- Insertion de 100 clients
 DECLARE
   v_numClient NUMBER := 10001;
   v_typeClient VARCHAR2(50);
@@ -97,6 +96,7 @@ DECLARE
   v_email VARCHAR2(50);
   v_comptes tset_ref_comptes := tset_ref_comptes();
   v_numAgence NUMBER;
+  v_numCompte NUMBER;
 BEGIN
   FOR i IN 1..100 LOOP
     IF MOD(i, 2) = 0 THEN
@@ -114,22 +114,25 @@ BEGIN
     -- Ajout de comptes pour certains clients
     IF MOD(i, 3) = 0 THEN
       FOR j IN 1..FLOOR(DBMS_RANDOM.VALUE(1, 4)) LOOP
-        -- Sélectionner un numéro d'agence aléatoire
-        SELECT a.numAgence INTO v_numAgence
-        FROM Agence a
-        WHERE a.numAgence BETWEEN 101 AND 105
-            OR a.numAgence BETWEEN 201 AND 205
-            OR a.numAgence BETWEEN 301 AND 305
-            OR a.numAgence BETWEEN 401 AND 405
-            OR a.numAgence BETWEEN 501 AND 503
-            OR a.numAgence BETWEEN 601 AND 602
-        ORDER BY DBMS_RANDOM.VALUE;
+    -- Sélectionner un numéro d'agence aléatoire
+    v_numAgence := CASE
+    WHEN DBMS_RANDOM.VALUE(0, 1) < 1/6 THEN TRUNC(DBMS_RANDOM.VALUE(101, 105))
+    WHEN DBMS_RANDOM.VALUE(0, 1) < 2/6 THEN TRUNC(DBMS_RANDOM.VALUE(201, 205))
+    WHEN DBMS_RANDOM.VALUE(0, 1) < 3/6 THEN TRUNC(DBMS_RANDOM.VALUE(301, 305))
+    WHEN DBMS_RANDOM.VALUE(0, 1) < 4/6 THEN TRUNC(DBMS_RANDOM.VALUE(401, 405))
+    WHEN DBMS_RANDOM.VALUE(0, 1) < 5/6 THEN TRUNC(DBMS_RANDOM.VALUE(501, 503))
+    ELSE TRUNC(DBMS_RANDOM.VALUE(601, 602))
+    END;
+
+
+
+        v_numCompte := LPAD(v_numAgence, 3, '0') || LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000, 9999999)), 7, '0');
 
         INSERT INTO Compte VALUES (
           tcompte(
-            LPAD(v_numAgence, 3, '0') || LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000, 9999999)), 7, '0'),
-            TRUNC(DBMS_RANDOM.VALUE(TO_DATE('2010/01/01', 'YYYY/MM/DD'), TO_DATE('2023/04/30', 'YYYY/MM/DD'))),
-            TRUNC(DBMS_RANDOM.VALUE(TO_DATE('2010/01/01', 'YYYY/MM/DD'), TO_DATE('2023/04/30', 'YYYY/MM/DD'))),
+            v_numCompte,
+            TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, SYSDATE - TO_DATE('2010/01/01', 'YYYY/MM/DD') + 1)),
+            TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, SYSDATE - TO_DATE('2010/01/01', 'YYYY/MM/DD') + 1)),
             CASE WHEN TRUNC(DBMS_RANDOM.VALUE(0, 2)) = 0 THEN 'Actif' ELSE 'BLOQUE' END,
             TRUNC(DBMS_RANDOM.VALUE(10000, 1000000)),
             tset_ref_operations(),
@@ -147,9 +150,9 @@ BEGIN
                 LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000, 9999999)), 7, '0'),
                 CASE WHEN TRUNC(DBMS_RANDOM.VALUE(0, 2)) = 0 THEN 'Credit' ELSE 'Debit' END,
                 TRUNC(DBMS_RANDOM.VALUE(1000, 100000)),
-                TRUNC(DBMS_RANDOM.VALUE(TO_DATE('2020/01/01', 'YYYY/MM/DD'), TO_DATE('2023/04/30', 'YYYY/MM/DD'))),
+                TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, SYSDATE - TO_DATE('2020/01/01', 'YYYY/MM/DD') + 1)),
                 NULL,
-                (SELECT REF(c) FROM Compte c WHERE c.numCompte = LPAD(v_numAgence, 3, '0') || LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000, 9999999)), 7, '0'))
+                (SELECT REF(c) FROM Compte c WHERE c.numCompte = v_numCompte)
               )
             );
           END LOOP;
@@ -162,14 +165,14 @@ BEGIN
               tpret(
                 LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000, 9999999)), 7, '0'),
                 TRUNC(DBMS_RANDOM.VALUE(100000, 5000000)),
-                TRUNC(DBMS_RANDOM.VALUE(TO_DATE('2020/01/01', 'YYYY/MM/DD'), TO_DATE('2023/04/30', 'YYYY/MM/DD'))),
+                TRUNC(SYSDATE - DBMS_RANDOM.VALUE(0, SYSDATE - TO_DATE('2020/01/01', 'YYYY/MM/DD') + 1)),
                 TRUNC(DBMS_RANDOM.VALUE(12, 360)),
                 CASE WHEN TRUNC(DBMS_RANDOM.VALUE(0, 5)) = 0 THEN 'Vehicule'
                      WHEN TRUNC(DBMS_RANDOM.VALUE(0, 5)) = 1 THEN 'Immobilier'
                      WHEN TRUNC(DBMS_RANDOM.VALUE(0, 5)) = 2 THEN 'ANSEJ'
                      ELSE 'ANJEM' END,
                 TRUNC(DBMS_RANDOM.VALUE(1, 10)),
-                (SELECT REF(c) FROM Compte c WHERE c.numCompte = LPAD(v_numAgence, 3, '0') || LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000, 9999999)), 7, '0'))
+                (SELECT REF(c) FROM Compte c WHERE c.numCompte = v_numCompte)
               )
             );
           END LOOP;
