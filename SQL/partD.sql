@@ -81,3 +81,92 @@ insert into table (select s.agences from Succursale s where numSucc=5)
 
 insert into table (select s.agences from Succursale s where numSucc=6)
 (select ref(a) from Agence a where  a.succursale=(select ref(s) from Succursale s where numSucc=6));
+
+
+-- Insertion de 100 clients
+DECLARE
+  v_numClient NUMBER := 10001;
+  v_typeClient VARCHAR2(50);
+  v_nomClient VARCHAR2(50);
+  v_adresseClient VARCHAR2(100);
+  v_numTel VARCHAR2(10);
+  v_email VARCHAR2(50);
+  v_comptes tset_ref_comptes := tset_ref_comptes();
+BEGIN
+  FOR i IN 1..100 LOOP
+    IF MOD(i, 2) = 0 THEN
+      v_typeClient := 'Particulier';
+    ELSE
+      v_typeClient := 'Entreprise';
+    END IF;
+    v_nomClient := 'Client_' || LPAD(i, 3, '0');
+    v_adresseClient := 'Adresse_' || LPAD(i, 3, '0');
+    v_numTel := '0' || LPAD(TRUNC(DBMS_RANDOM.VALUE(600000000, 699999999)), 9, '0');
+    v_email := 'client' || LPAD(i, 3, '0') || '@example.com';
+
+    INSERT INTO Client VALUES (tclient(v_numClient, v_nomClient, v_typeClient, v_adresseClient, v_numTel, v_email, v_comptes));
+
+    -- Ajout de comptes pour certains clients
+    IF MOD(i, 3) = 0 THEN
+      FOR j IN 1..FLOOR(DBMS_RANDOM.VALUE(1, 4)) LOOP
+        INSERT INTO Compte VALUES (
+          tcompte(
+            LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000000, 9999999999)), 10, '0'),
+            TRUNC(DBMS_RANDOM.VALUE(TO_DATE('2010/01/01', 'YYYY/MM/DD'), TO_DATE('2023/04/30', 'YYYY/MM/DD'))),
+            TRUNC(DBMS_RANDOM.VALUE(TO_DATE('2010/01/01', 'YYYY/MM/DD'), TO_DATE('2023/04/30', 'YYYY/MM/DD'))),
+            CASE WHEN TRUNC(DBMS_RANDOM.VALUE(0, 2)) = 0 THEN 'Actif' ELSE 'BLOQUE' END,
+            TRUNC(DBMS_RANDOM.VALUE(10000, 1000000)),
+            tset_ref_operations(),
+            tset_ref_prets(),
+            (SELECT REF(c) FROM Client c WHERE c.numClient = v_numClient),
+            (SELECT REF(a) FROM Agence a WHERE a.numAgence BETWEEN 101 AND 105
+                                              OR a.numAgence BETWEEN 201 AND 205
+                                              OR a.numAgence BETWEEN 301 AND 305
+                                              OR a.numAgence BETWEEN 401 AND 405
+                                              OR a.numAgence BETWEEN 501 AND 503
+                                              OR a.numAgence BETWEEN 601 AND 602)
+          )
+        );
+
+        -- Ajout d'opérations pour certains comptes
+        IF MOD(j, 2) = 0 THEN
+          FOR k IN 1..FLOOR(DBMS_RANDOM.VALUE(1, 11)) LOOP
+            INSERT INTO Operation VALUES (
+              toperation(
+                LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000, 9999999)), 7, '0'),
+                CASE WHEN TRUNC(DBMS_RANDOM.VALUE(0, 2)) = 0 THEN 'Credit' ELSE 'Debit' END,
+                TRUNC(DBMS_RANDOM.VALUE(1000, 100000)),
+                TRUNC(DBMS_RANDOM.VALUE(TO_DATE('2020/01/01', 'YYYY/MM/DD'), TO_DATE('2023/04/30', 'YYYY/MM/DD'))),
+                NULL,
+                (SELECT REF(c) FROM Compte c WHERE c.numCompte = LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000000, 9999999999)), 10, '0'))
+              )
+            );
+          END LOOP;
+        END IF;
+
+        -- Ajout de prêts pour certains comptes
+        IF MOD(j, 3) = 0 THEN
+          FOR k IN 1..FLOOR(DBMS_RANDOM.VALUE(1, 4)) LOOP
+            INSERT INTO Pret VALUES (
+              tpret(
+                LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000, 9999999)), 7, '0'),
+                TRUNC(DBMS_RANDOM.VALUE(100000, 5000000)),
+                TRUNC(DBMS_RANDOM.VALUE(TO_DATE('2020/01/01', 'YYYY/MM/DD'), TO_DATE('2023/04/30', 'YYYY/MM/DD'))),
+                TRUNC(DBMS_RANDOM.VALUE(12, 360)),
+                CASE WHEN TRUNC(DBMS_RANDOM.VALUE(0, 5)) = 0 THEN 'Vehicule'
+                     WHEN TRUNC(DBMS_RANDOM.VALUE(0, 5)) = 1 THEN 'Immobilier'
+                     WHEN TRUNC(DBMS_RANDOM.VALUE(0, 5)) = 2 THEN 'ANSEJ'
+                     ELSE 'ANJEM' END,
+                TRUNC(DBMS_RANDOM.VALUE(1, 10)),
+                (SELECT REF(c) FROM Compte c WHERE c.numCompte = LPAD(TRUNC(DBMS_RANDOM.VALUE(1000000000, 9999999999)), 10, '0'))
+              )
+            );
+          END LOOP;
+        END IF;
+      END LOOP;
+    END IF;
+
+    v_numClient := v_numClient + 1;
+  END LOOP;
+END;
+/
