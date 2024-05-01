@@ -86,7 +86,7 @@ insert into table (select s.agences from Succursale s where numSucc=6)
 
 
 
-
+-------insertion des 100 clients
 DECLARE
   v_numClient NUMBER := 10001;
   v_typeClient VARCHAR2(50);
