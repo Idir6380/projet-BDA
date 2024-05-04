@@ -210,7 +210,7 @@ WHERE EXISTS (SELECT 1
               WHERE op.compte = REF(c));
 
 
--- mis à jour les collections de prêts pour les comptes
+-- mise à jour les collections de prêts pour les comptes
 UPDATE Compte c
 SET c.prets = (SELECT CAST(MULTISET(
                     SELECT REF(p)
@@ -221,3 +221,15 @@ SET c.prets = (SELECT CAST(MULTISET(
 WHERE EXISTS (SELECT 1
               FROM Pret p
               WHERE p.compte = REF(c));
+
+-- mise à jour les collections de compte pour les agence 
+UPDATE Agence a
+SET a.comptes = (SELECT CAST(MULTISET(
+                    SELECT REF(c)
+                    FROM compte c
+                    WHERE c.agence = REF(a)
+                ) AS tset_ref_comptes)
+                FROM dual)
+WHERE EXISTS (SELECT 1
+              FROM Compte c
+              WHERE c.agence = REF(a));
