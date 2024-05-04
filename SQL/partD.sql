@@ -184,3 +184,40 @@ BEGIN
   END LOOP;
 END;
 /
+
+-- mise à jour les collections de comptes pour les clients
+UPDATE Client c
+SET c.comptes = (SELECT CAST(MULTISET(
+                    SELECT REF(co)
+                    FROM Compte co
+                    WHERE co.client = REF(c)
+                 ) AS tset_ref_comptes)
+                 FROM dual)
+WHERE EXISTS (SELECT 1
+              FROM Compte co
+              WHERE co.client = REF(c));
+
+-- mise à jour les collections d'opérations pour les comptes              
+UPDATE Compte c
+SET c.operations = (SELECT CAST(MULTISET(
+                        SELECT REF(op)
+                        FROM Operation op
+                        WHERE op.compte = REF(c)
+                    ) AS tset_ref_operations)
+                    FROM dual)
+WHERE EXISTS (SELECT 1
+              FROM Operation op
+              WHERE op.compte = REF(c));
+
+
+-- mis à jour les collections de prêts pour les comptes
+UPDATE Compte c
+SET c.prets = (SELECT CAST(MULTISET(
+                    SELECT REF(p)
+                    FROM Pret p
+                    WHERE p.compte = REF(c)
+                ) AS tset_ref_prets)
+                FROM dual)
+WHERE EXISTS (SELECT 1
+              FROM Pret p
+              WHERE p.compte = REF(c));
