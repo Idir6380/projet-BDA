@@ -61,3 +61,21 @@ FROM (
   ORDER BY nb_operations DESC
 ) compte_mouvemente
 WHERE ROWNUM = 1;
+
+---les methodes cree
+--obtention du nombre de prêts dans une agence :
+SELECT a.nomAgence, a.nbr_pret() AS nombre_de_prets
+FROM Agence a;
+
+-- le montant global des prêts dans une agence :
+SELECT a.nomAgence, a.montant_global_pret(304) AS montant_global_des_prets
+FROM Agence a
+WHERE a.numAgence = 304;
+
+-- le nombre d'agences principales dans une succursale
+SELECT s.nomSucc, s.nbr_agences_principales() AS nombre_d_agences_principales
+FROM Succursale s;
+
+--la liste des agences secondaires dans une succursale qui ont des prêts de type 'ANSEJ' 
+SELECT s.nomSucc, ag.nom_agence
+FROM Succursale s, TABLE(s.show_agences_secondaires()) ag;
