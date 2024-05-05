@@ -49,3 +49,15 @@ WHERE (p.dateEffet + p.duree <= TRUNC(SYSDATE)) -- Vérifier si la période de r
                                      FROM Operation op
                                      WHERE op.natureOp = 'Debit'
                                        AND op.compte = p.compte), 0)) > 0; -- Vérifier si le montant restant dû est supérieur à zéro
+
+--14
+
+SELECT compte_mouvemente.numCompte, compte_mouvemente.nb_operations
+FROM (
+  SELECT c.numCompte, COUNT(*) AS nb_operations
+  FROM Compte c, TABLE(c.operations) op
+  WHERE EXTRACT(YEAR FROM deref(VALUE(op)).dateOp) = 2023
+  GROUP BY c.numCompte
+  ORDER BY nb_operations DESC
+) compte_mouvemente
+WHERE ROWNUM = 1;
