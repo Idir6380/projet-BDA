@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from random import randint, choice
 from datetime import datetime, timedelta
-# Connexion à la base de données MongoDB
+#connexion à la base de données MongoDB
 client = MongoClient('mongodb://localhost:27017')
 db = client['banque']
 db.clients.drop()
@@ -12,7 +12,7 @@ db.Succursale.drop()
 db.Agence.drop()
 collection_succursales = db['Succursale']
 
-# Succursales à insérer
+#succursales à insérer
 succursales = [
     {"numSucc": 1, "nomSucc": "Succursale Alger Centre", "adresseSucc": "12 Rue Didouche Mourad, Alger", "region": "Nord"},
     {"numSucc": 2, "nomSucc": "Succursale Oran", "adresseSucc": "25 Boulevard de la Soummam, Oran", "region": "Ouest"},
@@ -23,7 +23,7 @@ succursales = [
 ]
 
 
-# Insertion des succursales dans MongoDB
+#insertion des succursales dans MongoDB
 result = collection_succursales.insert_many(succursales)
 print(f"Succursales insérées avec les ID : {result.inserted_ids}")
 
@@ -68,10 +68,10 @@ agences = [
     {"numAgence": 603, "nomAgence": "Agence Sétif El Eulma", "adresseAgence": "5 Rue El Eulma, Sétif", "categorie": "Secondaire", "numSucc": 6},
     {"numAgence": 604, "nomAgence": "Agence Sétif Bougaa", "adresseAgence": "12 Rue Bougaa, Sétif", "categorie": "Secondaire", "numSucc": 6},
     {"numAgence": 605, "nomAgence": "Agence Sétif Ain Azel", "adresseAgence": "30 Rue Ain Azel, Sétif", "categorie": "Secondaire", "numSucc": 6},
-    # ... ajouter les autres agences
+
 ]
 
-# Insertion des agences dans MongoDB
+#insertion des agences dans MongoDB
 result = collection_agences.insert_many(agences)
 print(f"Agences insérées avec les ID : {result.inserted_ids}")
 
@@ -81,7 +81,7 @@ def generate_address():
     return f"{randint(1, 100)} {choice(street_names)}, {choice(cities)}"
 
 
-# Remplissage de la table des clients
+#remplissage de la table des clients
 numeros_agence = [agence["numAgence"] for agence in agences]
 
 for i in range(1, 101):
@@ -96,7 +96,7 @@ for i in range(1, 101):
     }
     db.clients.insert_one(client_data)
 
-# Remplissage de la table des comptes avec des opérations
+#remplissage de la table des comptes avec des opérations
 clients_data = db.clients.find({}, {"NumClient": 1, "NumAgence": 1})
 nb = 1
 for c_data in clients_data:
@@ -124,7 +124,7 @@ for c_data in clients_data:
         }
         db.opérations.insert_one(operation_data)
     nb+=1
-# Remplissage de la table des prêts 
+#remplissage de la table des prêts 
 
 comptes = db.comptes.find({}, {"NumCompte": 1})
 

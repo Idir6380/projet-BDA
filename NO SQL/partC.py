@@ -76,7 +76,7 @@ Préciser NumPrêt, numClient, MontantPrêt et dateEffet.
 # Récupérer les prêts liés à des dossiers ANSEJ
 prêts_ANSEJ = db.prêts.find({"typePrêt": "ANSEJ"})
 # Afficher les informations des prêts liés à des dossiers ANSEJ
-print("Prêts liés à des dossiers ANSEJ :")
+print("prêts liés à des dossiers ANSEJ :")
 for prêt in prêts_ANSEJ:
     print(f"Numéro de prêt : {prêt['NumPrêt']}, Numéro de client : {prêt['NumCompte']}, Montant du prêt : {prêt['montantPrêt']} DA, Date d'effet : {prêt['dateEffet']}")
 
@@ -85,13 +85,9 @@ Afficher tous les prêts effectués par des clients de type « Particulier ». O
 """
 
 
-from pymongo import MongoClient
 
-# Connexion à la base de données MongoDB
-client = MongoClient('mongodb://localhost:27017')
-db = client['banque']
 
-# Récupération des prêts des clients de type "Particulier"
+#recuperation des prêts des clients de type "Particulier"
 print('prêts effectués par des clients de type "Particulier"')
 prets = db.prêts.aggregate([
     {
@@ -141,7 +137,7 @@ Le $match filtre les documents pour ne garder que ceux où le client est de type
 Le $project sélectionne les champs à inclure dans le résultat final (NumClient, NomClient, NumPrêt, montantPrêt).
 Enfin, nous itérons sur les résultats et affichons les informations demandées.
 """
-# Affichage des résultats
+# afficher les résultats
 for pret in prets:
     print(f"NumClient: {pret['NumClient']}, NomClient: {pret['NomClient']}, NumPrêt: {pret['NumPrêt']}, montantPrêt: {pret['montantPrêt']}")
 
@@ -178,14 +174,14 @@ Avec votre conception, peut-on répondre à la requête suivante : Afficher tout
 opérations de crédit effectuées sur les comptes des clients de type « Entreprise » pendant
 l’année 2023. Justifiez votre réponse.S
 """
-# Récupérer les numéros de clients de type "Entreprise"
+#recuperation des numeros de clients de type "Entreprise"
 clients_entreprise = db.clients.find({"TypeClient": "Entreprise"}, {"NumClient": 1, "_id": 0})
 numeros_clients_entreprise = [client["NumClient"] for client in clients_entreprise]
 
-# Récupérer les numéros de comptes correspondants
+#recuperation des numeros de comptes correspondants
 numeros_comptes_entreprise = [compte["NumCompte"] for compte in db.comptes.find({"NumClient": {"$in": numeros_clients_entreprise}}, {"NumCompte": 1, "_id": 0})]
 
-# Récupérer les opérations de crédit de l'année 2023
+#recuperation des opérations de crédit de l'année 2023
 debut_2023 = datetime(2023, 1, 1)
 fin_2023 = datetime(2023, 12, 31)
 operations_credit_2023 = db.opérations.find({
