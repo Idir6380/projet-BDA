@@ -124,9 +124,9 @@ for c_data in clients_data:
         }
         db.opérations.insert_one(operation_data)
     nb+=1
-# Remplissage de la table des prêts (40 clients ont effectué des prêts)
+# Remplissage de la table des prêts 
 
-comptes = db.comptes.find({}, {"NumCompte":1})
+comptes = db.comptes.find({}, {"NumCompte": 1})
 
 for compte in comptes:
     prêt_data = {
@@ -137,8 +137,9 @@ for compte in comptes:
         "typePrêt": choice(["Véhicule", "Immobilier", "ANSEJ", "ANJEM"]),
         "tauxIntérêt": round(randint(1, 10) / 100, 2),
         "montantEchéance": randint(100, 10000),
-        "NumCompte": compte
+        "NumCompte": compte['NumCompte']
     }
     db.prêts.insert_one(prêt_data)
 
 print("Base de données remplie avec succès !")
+
